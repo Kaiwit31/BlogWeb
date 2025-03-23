@@ -1,0 +1,47 @@
+import express from "express"
+import postRoutes from "./routes/posts.js"
+import authRoutes from "./routes/auth.js"
+import userRoutes from "./routes/users.js"
+import cors from "cors"
+import cookieParser from "cookie-parser"
+import multer from "multer"
+
+const app = express()
+const port = 8800;
+
+
+app.use(
+  cors({
+    origin: "http://localhost:5173", // เปลี่ยนเป็น URL ที่ถูกต้อง
+    credentials: true,
+  })
+);
+app.use(cookieParser());
+app.use(express.json());
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, '../client/public/upload')
+    },
+    filename: function (req, file, cb) {
+      cb(null, Date.now()+ file.originalname)
+    }
+})
+
+const upload = multer({ storage })
+
+app.post('/api/upload', upload.single('file'), function (req, res) {
+    const file = req.file;
+    res.status(200).json(file.filename)
+})
+
+app.use("/api/auth", authRoutes)
+app.use("/api/users", userRoutes)
+app.use("/api/posts", postRoutes)
+
+
+
+app.listen(port, ()=>{
+    console.log(`Server running on port ${port}`);
+})
+
